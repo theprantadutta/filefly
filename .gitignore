@@ -1,0 +1,8 @@
+/target
+
+# Testing copy files, folders
+/temp
+/output
+
+# IDE Files
+/.idea
