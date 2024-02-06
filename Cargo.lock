@@ -146,6 +146,7 @@ dependencies = [
  "log",
  "tokio",
  "walkdir",
+ "winapi",
 ]
 
 [[package]]
