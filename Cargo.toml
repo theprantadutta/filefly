@@ -14,3 +14,4 @@ log = "0.4.20"
 indicatif = "0.17.7"
 tokio = { version = "1", features = ["full"] }
 winapi = { version = "0.3.9", features = ["winuser", "shellapi"] }
+ctrlc = "3.3.0"
