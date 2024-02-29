@@ -1,8 +1,8 @@
-use std::{fs, io};
+use crate::logger::Logger;
+use indicatif::{ProgressBar, ProgressStyle};
 use std::io::{Error, ErrorKind};
 use std::path::Path;
-use indicatif::{ProgressBar, ProgressStyle};
-use crate::logger::Logger;
+use std::{fs, io};
 
 pub fn delete_folder_with_progress(folder_path: impl AsRef<Path>) -> io::Result<()> {
     // INITIALIZE LOGGER INSTANCE
@@ -18,15 +18,8 @@ pub fn delete_folder_with_progress(folder_path: impl AsRef<Path>) -> io::Result<
 
     // INITIALIZE PROGRESS BAR
     let pb = ProgressBar::new(total_size);
-    // pb.set_style(
-    //     ProgressStyle::default_bar()
-    //         .template("{spinner:.red} [{elapsed_precise}] [{wide_bar:.red/yellow}] {bytes}/{total_bytes} ({eta})")
-    // )
-    // .unwrap()
-    // .progress_chars("#>-");
     pb.set_style(ProgressStyle::with_template("{spinner:.cyan} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta})")
         .unwrap()
-        // .with_key("eta", |state: &ProgressState, w: &mut dyn Write| write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap())
         .progress_chars("#>-"));
 
     // DELETE FOLDER RECURSIVELY
@@ -38,7 +31,11 @@ pub fn delete_folder_with_progress(folder_path: impl AsRef<Path>) -> io::Result<
     Ok(())
 }
 
-fn delete_folder_recursive_with_progress(folder_path: impl AsRef<Path>, pb: &ProgressBar, logger: &Logger) -> io::Result<()> {
+fn delete_folder_recursive_with_progress(
+    folder_path: impl AsRef<Path>,
+    pb: &ProgressBar,
+    logger: &Logger,
+) -> io::Result<()> {
     // ITERATE THROUGH THE ENTRIES IN THE FOLDER
     for entry in fs::read_dir(&folder_path)? {
         let entry = entry?;
@@ -50,7 +47,10 @@ fn delete_folder_recursive_with_progress(folder_path: impl AsRef<Path>, pb: &Pro
             delete_folder_recursive_with_progress(entry.path(), pb, logger)?;
         } else {
             // LOG INFORMATION ABOUT THE FILE BEING DELETED
-            logger.info(&format!("Deleting File {}", entry.file_name().to_str().unwrap()));
+            logger.info(&format!(
+                "Deleting File {}",
+                entry.file_name().to_str().unwrap()
+            ));
 
             // GET FILE LENGTH FOR PROGRESS BAR
             let file_len = entry.metadata()?.len();
@@ -65,6 +65,42 @@ fn delete_folder_recursive_with_progress(folder_path: impl AsRef<Path>, pb: &Pro
 
     // DELETE THE EMPTY FOLDER
     fs::remove_dir(&folder_path)?;
+
+    Ok(())
+}
+
+pub fn delete_single_file_with_progress(file_path: impl AsRef<Path>) -> io::Result<()> {
+    // INITIALIZE LOGGER INSTANCE
+    let logger = Logger;
+
+    // CHECK IF THE FILE EXISTS
+    if !file_path.as_ref().exists() {
+        return Err(Error::new(ErrorKind::NotFound, "File not found"));
+    }
+
+    // GET FILE LENGTH FOR PROGRESS BAR
+    let file_len = file_path.as_ref().metadata()?.len();
+
+    // INITIALIZE PROGRESS BAR
+    let pb = ProgressBar::new(file_len);
+    pb.set_style(ProgressStyle::with_template("{spinner:.cyan} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta})")
+        .unwrap()
+        .progress_chars("#>-"));
+
+    // LOG INFORMATION ABOUT THE FILE BEING DELETED
+    logger.info(&format!(
+        "Deleting File: {}",
+        file_path.as_ref().file_name().unwrap().to_str().unwrap()
+    ));
+
+    // INCREMENT PROGRESS BAR
+    pb.inc(file_len);
+
+    // DELETE FILE
+    fs::remove_file(file_path)?;
+
+    // FINISH PROGRESS BAR WITH "DONE" MESSAGE
+    pb.finish_with_message("done");
 
     Ok(())
 }

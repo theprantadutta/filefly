@@ -1,7 +1,8 @@
-use std::{fs, io};
+use indicatif::{ProgressBar, ProgressStyle};
 use std::io::{Read, Write};
 use std::path::Path;
-use indicatif::{ProgressBar, ProgressStyle};
+use std::{fs, io};
+
 use crate::logger::Logger;
 
 const BUFFER_SIZE: usize = 8192;
@@ -24,7 +25,10 @@ pub fn copy_files_with_progress(src: impl AsRef<Path>, dst: impl AsRef<Path>) ->
             copy_files_with_progress(entry.path(), dst.as_ref().join(entry.file_name()))?;
         } else {
             // LOG INFORMATION ABOUT THE FILE BEING COPIED
-            logger.info(&format!("Copying Files From {}", entry.file_name().to_str().unwrap()));
+            logger.info(&format!(
+                "Copying Files From {}",
+                entry.file_name().to_str().unwrap()
+            ));
 
             // GET FILE LENGTH FOR PROGRESS BAR
             let file_len = entry.metadata()?.len();
@@ -34,7 +38,6 @@ pub fn copy_files_with_progress(src: impl AsRef<Path>, dst: impl AsRef<Path>) ->
 
             pb.set_style(ProgressStyle::with_template("{spinner:.cyan} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta})")
                 .unwrap()
-                // .with_key("eta", |state: &ProgressState, w: &mut dyn Write| write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap())
                 .progress_chars("#>-"));
 
             // OPEN SOURCE FILE FOR READING
@@ -72,5 +75,74 @@ pub fn copy_files_with_progress(src: impl AsRef<Path>, dst: impl AsRef<Path>) ->
     }
 
     // RETURN OK RESULT IF EVERYTHING SUCCEEDS
+    Ok(())
+}
+
+pub fn copy_single_file_with_progress(
+    src: impl AsRef<Path>,
+    dst: impl AsRef<Path>,
+) -> io::Result<()> {
+    let logger = Logger;
+
+    // Ensure src is a file
+    let src_path = src.as_ref();
+    if !src_path.is_file() {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "Source is not a file",
+        ));
+    }
+
+    // Create destination directory if it does not exist
+    fs::create_dir_all(&dst)?;
+
+    // Log information about the file being copied
+    logger.info(&format!(
+        "Copying File: {}",
+        src_path.file_name().unwrap().to_str().unwrap()
+    ));
+
+    // Get file length for progress bar
+    let file_len = src_path.metadata()?.len();
+
+    // Initialize progress bar
+    let pb = ProgressBar::new(file_len);
+
+    pb.set_style(ProgressStyle::with_template("{spinner:.cyan} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta})")
+        .unwrap()
+        .progress_chars("#>-"));
+
+    // Open source file for reading
+    let mut src_file = fs::File::open(src_path)?;
+
+    // Create destination file for writing
+    let mut dst_file = fs::File::create(dst.as_ref().join(src_path.file_name().unwrap()))?;
+
+    // Initialize buffer for file copy
+    let mut buffer = [0u8; BUFFER_SIZE];
+
+    // Main loop for file copy
+    loop {
+        match src_file.read(&mut buffer) {
+            Ok(0) => break, // Reached the end of the file
+            Ok(bytes_read) => {
+                // Write buffer to destination file
+                dst_file.write_all(&buffer[..bytes_read])?;
+
+                // Increment progress bar
+                pb.inc(bytes_read as u64);
+            }
+            Err(err) => {
+                // Handle error during file read
+                eprintln!("Error reading file: {}", err);
+                pb.finish_with_message("error");
+                return Err(err);
+            }
+        }
+    }
+
+    // Finish progress bar with "done" message
+    pb.finish_with_message("done");
+
     Ok(())
 }
