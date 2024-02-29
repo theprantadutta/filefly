@@ -8,9 +8,6 @@ use crate::logger::Logger;
 const BUFFER_SIZE: usize = 8192;
 
 pub fn copy_files_with_progress(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> {
-    // INITIALIZE LOGGER INSTANCE
-    let logger = Logger;
-
     // CREATE DESTINATION DIRECTORY IF IT DOES NOT EXIST
     fs::create_dir_all(&dst)?;
 
@@ -25,7 +22,7 @@ pub fn copy_files_with_progress(src: impl AsRef<Path>, dst: impl AsRef<Path>) ->
             copy_files_with_progress(entry.path(), dst.as_ref().join(entry.file_name()))?;
         } else {
             // LOG INFORMATION ABOUT THE FILE BEING COPIED
-            logger.info(&format!(
+            Logger.info(&format!(
                 "Copying Files From {}",
                 entry.file_name().to_str().unwrap()
             ));
@@ -82,8 +79,6 @@ pub fn copy_single_file_with_progress(
     src: impl AsRef<Path>,
     dst: impl AsRef<Path>,
 ) -> io::Result<()> {
-    let logger = Logger;
-
     // Ensure src is a file
     let src_path = src.as_ref();
     if !src_path.is_file() {
@@ -97,7 +92,7 @@ pub fn copy_single_file_with_progress(
     fs::create_dir_all(&dst)?;
 
     // Log information about the file being copied
-    logger.info(&format!(
+    Logger.info(&format!(
         "Copying File: {}",
         src_path.file_name().unwrap().to_str().unwrap()
     ));

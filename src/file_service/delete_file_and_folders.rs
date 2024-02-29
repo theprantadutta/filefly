@@ -5,9 +5,6 @@ use std::path::Path;
 use std::{fs, io};
 
 pub fn delete_folder_with_progress(folder_path: impl AsRef<Path>) -> io::Result<()> {
-    // INITIALIZE LOGGER INSTANCE
-    let logger = Logger;
-
     // CHECK IF THE FOLDER EXISTS
     if !folder_path.as_ref().exists() {
         return Err(Error::new(ErrorKind::NotFound, "Folder not found"));
@@ -23,7 +20,7 @@ pub fn delete_folder_with_progress(folder_path: impl AsRef<Path>) -> io::Result<
         .progress_chars("#>-"));
 
     // DELETE FOLDER RECURSIVELY
-    delete_folder_recursive_with_progress(&folder_path, &pb, &logger)?;
+    delete_folder_recursive_with_progress(&folder_path, &pb)?;
 
     // FINISH PROGRESS BAR WITH "DONE" MESSAGE
     pb.finish_with_message("done");
@@ -34,7 +31,6 @@ pub fn delete_folder_with_progress(folder_path: impl AsRef<Path>) -> io::Result<
 fn delete_folder_recursive_with_progress(
     folder_path: impl AsRef<Path>,
     pb: &ProgressBar,
-    logger: &Logger,
 ) -> io::Result<()> {
     // ITERATE THROUGH THE ENTRIES IN THE FOLDER
     for entry in fs::read_dir(&folder_path)? {
@@ -44,10 +40,10 @@ fn delete_folder_recursive_with_progress(
         // CHECK IF ENTRY IS A DIRECTORY
         if ty.is_dir() {
             // RECURSIVELY CALL THE FUNCTION FOR SUBDIRECTORIES
-            delete_folder_recursive_with_progress(entry.path(), pb, logger)?;
+            delete_folder_recursive_with_progress(entry.path(), pb)?;
         } else {
             // LOG INFORMATION ABOUT THE FILE BEING DELETED
-            logger.info(&format!(
+            Logger.info(&format!(
                 "Deleting File {}",
                 entry.file_name().to_str().unwrap()
             ));
@@ -70,9 +66,6 @@ fn delete_folder_recursive_with_progress(
 }
 
 pub fn delete_single_file_with_progress(file_path: impl AsRef<Path>) -> io::Result<()> {
-    // INITIALIZE LOGGER INSTANCE
-    let logger = Logger;
-
     // CHECK IF THE FILE EXISTS
     if !file_path.as_ref().exists() {
         return Err(Error::new(ErrorKind::NotFound, "File not found"));
@@ -88,7 +81,7 @@ pub fn delete_single_file_with_progress(file_path: impl AsRef<Path>) -> io::Resu
         .progress_chars("#>-"));
 
     // LOG INFORMATION ABOUT THE FILE BEING DELETED
-    logger.info(&format!(
+    Logger.info(&format!(
         "Deleting File: {}",
         file_path.as_ref().file_name().unwrap().to_str().unwrap()
     ));
