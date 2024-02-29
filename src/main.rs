@@ -1,19 +1,21 @@
 use clap::Parser;
 use filefly_args::FileFlyArgs;
-use handlers::{handle_copy_command::handle_copy_command, handle_delete_command::handle_delete_command};
+use handlers::{
+    handle_copy_command::handle_copy_command, handle_delete_command::handle_delete_command,
+};
 use logger::Logger;
 
-mod logger;
-mod handlers;
-mod utils;
 mod file_service;
 mod filefly_args;
+mod handlers;
+mod logger;
+mod utils;
 
 fn main() {
-    // Record the start time
+    // RECORD THE START TIME
     let start_time = std::time::Instant::now();
 
-    // Parse command-line arguments
+    // PARSE COMMAND LINE ARGUMENTS
     let args = FileFlyArgs::parse();
 
     match args {
@@ -21,7 +23,7 @@ fn main() {
         FileFlyArgs::Delete(command) => handle_delete_command(command),
     }
 
-    // Calculate and print the elapsed time
+    // CALCULATE AND PRINT THE ELAPSED TIME
     let elapsed_time = start_time.elapsed();
     Logger.info(&format!(
         "Time taken: {:.2} seconds ({:.2} milliseconds)",
