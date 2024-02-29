@@ -2,6 +2,7 @@ use clap::Parser;
 use filefly_args::FileFlyArgs;
 use handlers::{
     handle_copy_command::handle_copy_command, handle_delete_command::handle_delete_command,
+    handle_replace_command::handle_replace_command,
 };
 use logger::Logger;
 
@@ -21,6 +22,7 @@ fn main() {
     match args {
         FileFlyArgs::Copy(command) => handle_copy_command(command),
         FileFlyArgs::Delete(command) => handle_delete_command(command),
+        FileFlyArgs::Replace(command) => handle_replace_command(command),
     }
 
     // CALCULATE AND PRINT THE ELAPSED TIME
