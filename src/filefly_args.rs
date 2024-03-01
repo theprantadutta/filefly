@@ -26,6 +26,14 @@ pub enum FileFlyArgs {
         about = "Replace a file/folder with another"
     )]
     Replace(ReplaceCommand),
+
+    #[clap(
+        short_flag = 's',
+        alias = "sync",
+        name = "synchronize",
+        about = "Synchronize a file/folder with another"
+    )]
+    Synchronize(SynchronizeCommand),
 }
 
 #[derive(Parser, Debug)]
@@ -58,4 +66,16 @@ pub struct DeleteCommand {
     /// Folder to delete
     #[clap(short, long)]
     pub folder: String,
+}
+
+#[derive(Parser, Debug)]
+#[clap(name = "subcommand")]
+pub struct SynchronizeCommand {
+    /// Source directory
+    #[clap(short, long)]
+    pub source: String,
+
+    /// Destination directory
+    #[clap(short, long)]
+    pub destination: String,
 }

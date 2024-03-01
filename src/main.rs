@@ -6,6 +6,8 @@ use handlers::{
 };
 use logger::Logger;
 
+use crate::handlers::handle_synchronize_command::handle_synchronize_command;
+
 mod file_service;
 mod filefly_args;
 mod handlers;
@@ -23,6 +25,7 @@ fn main() {
         FileFlyArgs::Copy(command) => handle_copy_command(command),
         FileFlyArgs::Delete(command) => handle_delete_command(command),
         FileFlyArgs::Replace(command) => handle_replace_command(command),
+        FileFlyArgs::Synchronize(command) => handle_synchronize_command(command),
     }
 
     // CALCULATE AND PRINT THE ELAPSED TIME
