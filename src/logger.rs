@@ -1,48 +1,48 @@
+use chrono::{DateTime, Local};
 use colored::*;
-use chrono::{Local, DateTime};
 
-// DEFINE A LOGGER STRUCT
+// Define a logger struct
 pub struct Logger;
 
 impl Logger {
-    // FUNCTION TO GET THE CURRENT TIMESTAMP
+    // Function to get the current timestamp
     fn get_timestamp() -> DateTime<Local> {
         Local::now()
     }
 
-    // FUNCTION TO FORMAT THE TIMESTAMP AS A STRING
+    // Function to format the timestamp as a string
     fn format_timestamp(timestamp: DateTime<Local>) -> String {
-        // FORMAT THE TIMESTAMP WITH YEAR-MONTH-DAY HOUR:MINUTE:SECOND AM/PM
+        // Format the timestamp with year-month-day hour:minute:second am/pm
         timestamp.format("%Y-%m-%d %I:%M:%S %p").to_string()
     }
 
-    // FUNCTION TO APPLY COLOR TO THE LOG MESSAGE BASED ON LOG LEVEL
+    // Function to apply color to the log message based on log level
     fn colored_log(&self, level: &str, message: &str) {
-        // GET THE CURRENT TIMESTAMP
+        // Get the current timestamp
         let timestamp = Self::get_timestamp();
-        // FORMAT THE TIMESTAMP AS A STRING
+        // Format the timestamp as a string
         let formatted_timestamp = Self::format_timestamp(timestamp);
 
-        // CREATE A FORMATTED LOG MESSAGE INCLUDING TIMESTAMP, LEVEL, AND THE ACTUAL MESSAGE
+        // Create a formatted log message including timestamp, level, and the actual message
         let formatted_message = format!("{} [{}]: {}", formatted_timestamp, level, message);
 
-        // PRINT THE LOG MESSAGE WITH COLOR BASED ON THE LOG LEVEL
+        // Print the log message with color based on the log level
         match level {
-            "SUCCESS" => println!("{}", formatted_message.bright_green()), // APPLY BRIGHT GREEN COLOR TO SUCCESS LOGS
-            "ERROR" => println!("{}", formatted_message.bright_red()), // APPLY BRIGHT RED COLOR TO ERROR LOGS
-            "WARNING" => println!("{}", formatted_message.bright_yellow()), // APPLY BRIGHT YELLOW COLOR TO WARNING LOGS
-            "INFO" => println!("{}", formatted_message.bright_cyan()), // APPLY BRIGHT CYAN COLOR TO INFO LOGS
-            "DEBUG" => println!("{}", formatted_message.bright_blue()), // APPLY BRIGHT BLUE COLOR TO DEBUG LOGS
-            _ => println!("{}", formatted_message), // DEFAULT COLOR FOR UNRECOGNIZED LOG LEVELS
+            "SUCCESS" => println!("{}", formatted_message.bright_green()), // Apply bright green color to success logs
+            "ERROR" => println!("{}", formatted_message.bright_red()), // Apply bright red color to error logs
+            "WARNING" => println!("{}", formatted_message.bright_yellow()), // Apply bright yellow color to warning logs
+            "INFO" => println!("{}", formatted_message.bright_cyan()), // Apply bright cyan color to info logs
+            "DEBUG" => println!("{}", formatted_message.bright_blue()), // Apply bright blue color to debug logs
+            _ => println!("{}", formatted_message), // Default color for unrecognized log levels
         }
     }
 
-    // LOG FUNCTION THAT CALLS colored_log WITH A LOG LEVEL OF "LOG"
+    // Log function that calls colored_log with a log level of "LOG"
     // pub fn log(&self, message: &str) {
     //     self.colored_log("LOG", message);
     // }
 
-    // CONVENIENCE FUNCTIONS FOR DIFFERENT LOG LEVELS THAT CALL colored_log WITH THEIR RESPECTIVE LOG LEVEL
+    // Convenience functions for different log levels that call colored_log with their respective log level
     pub fn success(&self, message: &str) {
         self.colored_log("SUCCESS", message);
     }

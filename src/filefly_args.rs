@@ -1,5 +1,6 @@
 use clap::Parser;
 
+// Define command-line argument structure using the clap parser
 #[derive(Parser, Debug)]
 #[clap(name = "command")]
 pub enum FileFlyArgs {
@@ -36,6 +37,7 @@ pub enum FileFlyArgs {
     Synchronize(SynchronizeCommand),
 }
 
+// Define subcommand structures for each operation
 #[derive(Parser, Debug)]
 #[clap(name = "subcommand")]
 pub struct CopyCommand {

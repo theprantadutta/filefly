@@ -5,8 +5,9 @@ use crate::logger::Logger;
 
 use super::copy_file_and_folders::copy_single_file_with_progress;
 
+// Function to synchronize folders between source and destination
 pub fn synchronize_folders(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> {
-    // Create Destination Directory If it Doesn't Exist
+    // Create destination directory if it doesn't exist
     fs::create_dir_all(&dst)?;
 
     // Ensure source and destination are directories
@@ -20,21 +21,26 @@ pub fn synchronize_folders(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::
         ));
     }
 
+    // Iterate through entries in the source directory
     for entry in fs::read_dir(&src_path)? {
         let entry = entry?;
         let ty = entry.file_type()?;
         let path = entry.path();
+
+        // Log the synchronization process for the current entry
         Logger.debug(&format!(
             "Synchronizing {} with {}...",
             path.to_str().unwrap(),
             dst_path.to_str().unwrap()
         ));
 
+        // Get the relative path of the current entry
         match relative_path_without_prefix(src.as_ref(), path.as_path()) {
             Some(relative_path) => {
                 let dst_path = dst_path.join(relative_path);
 
                 if ty.is_dir() {
+                    // If the entry is a directory, recursively synchronize it
                     let result =
                         synchronize_folders(path.to_str().unwrap(), dst_path.to_str().unwrap());
 
@@ -45,32 +51,38 @@ pub fn synchronize_folders(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::
                             dst_path.to_str().unwrap()
                         )),
                         Err(e) => {
+                            // Log an error message if synchronization fails for the directory
                             Logger.error(&format!(
                                 "Synchronizing Failed from {} with {} with error",
                                 path.to_str().unwrap(),
                                 dst_path.to_str().unwrap()
                             ));
-                            println!("{}", e)
+                            println!("{}", e);
                         }
                     }
                 } else {
                     if fs::metadata(&dst_path).is_ok() {
+                        // If the entry is a file and it already exists at the destination, log an info message
                         Logger.info("File already exists at the destination.");
                     } else {
                         let dst_parent = dst_path.parent().ok_or_else(|| {
+                            // Log an error if the destination parent directory is invalid
                             std::io::Error::new(
                                 std::io::ErrorKind::InvalidInput,
                                 "Invalid destination directory",
                             )
                         })?;
+
+                        // Copy the single file to the destination
                         let result = copy_single_file_with_progress(&path, &dst_parent);
                         match result {
                             Ok(_) => Logger.success(&format!(
-                                "Copyied from {} to {} Successfully",
+                                "Copied from {} to {} Successfully",
                                 path.to_str().unwrap(),
                                 dst_path.to_str().unwrap()
                             )),
                             Err(e) => {
+                                // Log an error message if copying the file fails
                                 Logger.error("Synchronizing Failed with error");
                                 println!("{}", e);
                             }
@@ -79,7 +91,8 @@ pub fn synchronize_folders(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::
                 }
             }
             None => {
-                println!("Paths are not related")
+                // Log a message if the paths are not related
+                println!("Paths are not related");
             }
         }
     }
@@ -91,6 +104,7 @@ pub fn synchronize_folders(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::
         let ty = entry.file_type()?;
         let path = entry.path();
 
+        // Check if the corresponding file or folder exists in the source
         if !src_path
             .join(relative_path_without_prefix(dst.as_ref(), path.as_path()).unwrap())
             .exists()
@@ -120,6 +134,7 @@ pub fn synchronize_folders(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::
     Ok(())
 }
 
+// Function to get the relative path without a prefix
 fn relative_path_without_prefix(base: &Path, full_path: &Path) -> Option<PathBuf> {
     match full_path.strip_prefix(base) {
         Ok(relative_path) => Some(relative_path.to_path_buf()),

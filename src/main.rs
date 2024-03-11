@@ -6,6 +6,7 @@ use handlers::{
 };
 use logger::Logger;
 
+// Importing modules from the same crate
 use crate::handlers::handle_synchronize_command::handle_synchronize_command;
 
 mod file_service;
@@ -15,12 +16,13 @@ mod logger;
 mod utils;
 
 fn main() {
-    // RECORD THE START TIME
+    // Record the start time
     let start_time = std::time::Instant::now();
 
-    // PARSE COMMAND LINE ARGUMENTS
+    // Parse command line arguments
     let args = FileFlyArgs::parse();
 
+    // Handle different commands based on the parsed arguments
     match args {
         FileFlyArgs::Copy(command) => handle_copy_command(command),
         FileFlyArgs::Delete(command) => handle_delete_command(command),
@@ -28,7 +30,7 @@ fn main() {
         FileFlyArgs::Synchronize(command) => handle_synchronize_command(command),
     }
 
-    // CALCULATE AND PRINT THE ELAPSED TIME
+    // Calculate and print the elapsed time
     let elapsed_time = start_time.elapsed();
     Logger.info(&format!(
         "Time taken: {:.2} seconds ({:.2} milliseconds)",

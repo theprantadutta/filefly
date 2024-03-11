@@ -2,17 +2,22 @@ use crate::file_service::synchronize_folders::synchronize_folders;
 use crate::filefly_args::SynchronizeCommand;
 use crate::logger::Logger;
 
+// Function to handle the synchronize command
 pub fn handle_synchronize_command(command: SynchronizeCommand) {
+    // Log debug information about the synchronization
     Logger.debug(&format!(
         "Synchronizing Folder {} To {}",
         command.source, command.destination
     ));
+
+    // Call the synchronize_folders function and handle the result
     let result = synchronize_folders(&command.source, &command.destination);
 
     match result {
-        Ok(_) => Logger.success("Synchronizing Successful"),
+        Ok(_) => Logger.success("Synchronization Successful"),
         Err(e) => {
-            Logger.error("Synchronizing Failed with error");
+            // Log an error message if synchronization fails and print the error details
+            Logger.error("Synchronization Failed with error");
             println!("{}", e);
         }
     }
