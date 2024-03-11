@@ -84,23 +84,38 @@ pub fn synchronize_folders(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::
         }
     }
 
-    // Logger.info("Deleting Files...");
-    // for entry in fs::read_dir(&dst_path)? {
-    //     let entry = entry?;
-    //     let ty = entry.file_type()?;
-    //     let path = entry.path();
+    // Delete files and folders in the destination that don't exist in the source
+    Logger.info("Deleting Files...");
+    for entry in fs::read_dir(&dst_path)? {
+        let entry = entry?;
+        let ty = entry.file_type()?;
+        let path = entry.path();
 
-    //     if (fs::metadata(src).is_ok()) {
-
-    //     }
-    // }
-    // Delete files in destination that don't exist in source
-    // for file in files_to_delete {
-    // let relative_path = file.strip_prefix(dst_path).unwrap();
-    // let dst_file = dst_path.join(relative_path);
-    // Logger.info(&format!("Deleting: {}", dst_file.display()));
-    // delete_single_file_with_progress(dst_file)?;
-    // }
+        if !src_path
+            .join(relative_path_without_prefix(dst.as_ref(), path.as_path()).unwrap())
+            .exists()
+        {
+            if ty.is_dir() {
+                // Recursively delete the directory
+                fs::remove_dir_all(&path).map_err(|e| {
+                    io::Error::new(
+                        io::ErrorKind::Other,
+                        format!("Failed to delete directory {}: {}", path.display(), e),
+                    )
+                })?;
+                Logger.success(&format!("Deleted directory: {}", path.display()));
+            } else {
+                // Delete the file
+                fs::remove_file(&path).map_err(|e| {
+                    io::Error::new(
+                        io::ErrorKind::Other,
+                        format!("Failed to delete file {}: {}", path.display(), e),
+                    )
+                })?;
+                Logger.success(&format!("Deleted file: {}", path.display()));
+            }
+        }
+    }
 
     Ok(())
 }
@@ -111,99 +126,3 @@ fn relative_path_without_prefix(base: &Path, full_path: &Path) -> Option<PathBuf
         Err(_) => None,
     }
 }
-
-// pub fn synchronize_folders(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> {
-//     // CREATE DESTINATION DIRECTORY IF IT DOES NOT EXIST
-//     fs::create_dir_all(&dst)?;
-
-//     // Ensure source and destination are directories
-//     let src_path = src.as_ref();
-//     let dst_path = dst.as_ref();
-
-//     if !src_path.is_dir() || !dst_path.is_dir() {
-//         return Err(io::Error::new(
-//             io::ErrorKind::InvalidInput,
-//             "Source and destination must be directories",
-//         ));
-//     }
-
-//     Logger.info("Checking Total Files...");
-//     // Get lists of files in source and destination
-//     let src_files = get_files_recursive(src_path)?;
-//     let dst_files = get_files_recursive(dst_path)?;
-
-//     Logger.info(&format!("Total files in source: {}", src_files.len()));
-//     Logger.info(&format!("Total files in destination: {}", dst_files.len()));
-
-//     // Calculate set differences for files to be copied and deleted
-//     let files_to_copy: Vec<&Path> = src_files
-//         .difference(&dst_files)
-//         .map(|p| p.as_path())
-//         .collect();
-
-//     let files_to_delete: Vec<&Path> = dst_files
-//         .difference(&src_files)
-//         .map(|p| p.as_path())
-//         .collect();
-
-//     Logger.info(&format!("Files to Copy: {}", files_to_copy.len()));
-//     Logger.info(&format!("Files to Delete: {}", files_to_delete.len()));
-
-//     // Copy new files from source to destination
-//     for file in files_to_copy {
-//         let relative_path = file.strip_prefix(src_path).unwrap();
-//         let dst_file = dst_path.join(relative_path);
-
-//         // Check if the destination file already exists
-//         if !dst_file.exists() {
-//             // Ensure the parent directory exists in the destination
-//             if let Some(parent) = dst_file.parent() {
-//                 fs::create_dir_all(parent)?;
-//             }
-
-//             let dst_parent = dst_file.parent().ok_or_else(|| {
-//                 std::io::Error::new(
-//                     std::io::ErrorKind::InvalidInput,
-//                     "Invalid destination directory",
-//                 )
-//             })?;
-//             Logger.info(&format!("Copying: {}", file.display()));
-//             copy_single_file_with_progress(file.to_str().unwrap(), dst_parent.to_str().unwrap())?;
-//         } else {
-//             Logger.info(&format!(
-//                 "Skipping (File already exists): {}",
-//                 file.display()
-//             ));
-//         }
-//     }
-
-//     Logger.info("Deleting Files...");
-//     // Delete files in destination that don't exist in source
-//     for file in files_to_delete {
-//         let relative_path = file.strip_prefix(dst_path).unwrap();
-//         let dst_file = dst_path.join(relative_path);
-//         Logger.info(&format!("Deleting: {}", dst_file.display()));
-//         delete_single_file_with_progress(dst_file)?;
-//     }
-
-//     Logger.info("Synchronization Completed.");
-//     Ok(())
-// }
-
-// fn get_files_recursive(folder_path: impl AsRef<Path>) -> io::Result<HashSet<PathBuf>> {
-//     let mut files = HashSet::new();
-
-//     for entry in fs::read_dir(&folder_path)? {
-//         let entry = entry?;
-//         let ty = entry.file_type()?;
-//         let path = entry.path();
-
-//         if ty.is_dir() {
-//             files.extend(get_files_recursive(&path)?);
-//         } else {
-//             files.insert(path);
-//         }
-//     }
-
-//     Ok(files)
-// }
