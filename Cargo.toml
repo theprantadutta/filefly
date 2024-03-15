@@ -6,6 +6,13 @@ authors = ["Pranta Dutta"]
 description = "Better File Utilties"
 homepage = "https://github.com/theprantadutta/fliefly"
 
+[profile.release]
+strip = true      # Automatically strip symbols from the binary.
+opt-level = "z"   # Optimize for size.
+lto = true
+codegen-units = 1
+panic = "abort"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
