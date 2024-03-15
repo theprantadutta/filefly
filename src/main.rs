@@ -13,7 +13,6 @@ mod file_service;
 mod filefly_args;
 mod handlers;
 mod logger;
-mod utils;
 
 fn main() {
     // Record the start time
