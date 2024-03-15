@@ -23,7 +23,7 @@ FileFly supports the following commands:
 Copy a file or folder from the source to the destination.
 
 ```bash
-filefly copy -c source_path -d destination_path
+filefly copy -s source_path -d destination_path
 ```
 
 #### Delete
@@ -31,7 +31,7 @@ filefly copy -c source_path -d destination_path
 Delete a file or folder.
 
 ```bash
-filefly delete -C file_or_folder_path
+filefly delete -s file_or_folder_path
 ```
 
 #### Replace
@@ -39,7 +39,7 @@ filefly delete -C file_or_folder_path
 Replace a file or folder with another.
 
 ```bash
-filefly replace -C source_path -d destination_path
+filefly replace -s source_path -d destination_path
 ```
 
 #### Synchronize
@@ -63,19 +63,19 @@ filefly synchronize -s source_path -d destination_path
 ### Copy
 
 ```bash
-filefly copy -c /path/to/source -d /path/to/destination
+filefly copy -s /path/to/source -d /path/to/destination
 ```
 
 ### Delete
 
 ```bash
-filefly delete -C /path/to/file_or_folder
+filefly delete -s /path/to/file_or_folder
 ```
 
 ### Replace
 
 ```bash
-filefly replace -C /path/to/source -d /path/to/destination
+filefly replace -s /path/to/source -d /path/to/destination
 ```
 
 ### Synchronize
