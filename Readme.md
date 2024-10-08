@@ -31,7 +31,7 @@ filefly copy -s source_path -d destination_path
 Delete a file or folder.
 
 ```bash
-filefly delete -s file_or_folder_path
+filefly delete -f file_or_folder_path
 ```
 
 #### Replace
@@ -69,7 +69,7 @@ filefly copy -s /path/to/source -d /path/to/destination
 ### Delete
 
 ```bash
-filefly delete -s /path/to/file_or_folder
+filefly delete -f /path/to/file_or_folder
 ```
 
 ### Replace
