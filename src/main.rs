@@ -1,10 +1,9 @@
 use clap::Parser;
 use filefly_args::FileFlyArgs;
 use handlers::{
-    handle_copy_command::handle_copy_command, 
-    handle_delete_command::handle_delete_command,
+    handle_copy_command::handle_copy_command, handle_delete_command::handle_delete_command,
     handle_replace_command::handle_replace_command,
-    handle_synchronize_command::handle_synchronize_command
+    handle_synchronize_command::handle_synchronize_command,
 };
 use logger::Logger;
 
