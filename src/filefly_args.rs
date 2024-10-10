@@ -80,4 +80,8 @@ pub struct SynchronizeCommand {
     /// Destination directory
     #[clap(short, long)]
     pub destination: String,
+
+    /// Do not delete files
+    #[clap(long)]
+    pub no_delete: bool,
 }

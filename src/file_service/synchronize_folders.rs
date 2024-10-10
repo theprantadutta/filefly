@@ -6,7 +6,11 @@ use crate::logger::Logger;
 use super::copy_file_and_folders::copy_single_file_with_progress;
 
 // Function to synchronize folders between source and destination
-pub fn synchronize_folders(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> {
+pub fn synchronize_folders(
+    src: impl AsRef<Path>,
+    dst: impl AsRef<Path>,
+    no_delete: &bool, // Added the no_delete flag
+) -> io::Result<()> {
     // Create destination directory if it doesn't exist
     fs::create_dir_all(&dst)?;
 
@@ -41,8 +45,11 @@ pub fn synchronize_folders(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::
 
                 if ty.is_dir() {
                     // If the entry is a directory, recursively synchronize it
-                    let result =
-                        synchronize_folders(path.to_str().unwrap(), dst_path.to_str().unwrap());
+                    let result = synchronize_folders(
+                        path.to_str().unwrap(),
+                        dst_path.to_str().unwrap(),
+                        no_delete,
+                    );
 
                     match result {
                         Ok(_) => Logger.success(&format!(
@@ -97,7 +104,14 @@ pub fn synchronize_folders(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::
         }
     }
 
-    // Delete files and folders in the destination that don't exist in the source
+    // Check if no_delete is true
+    if *no_delete {
+        Logger.info("Skipping File Deletion...");
+        return Ok(());
+    }
+
+    // If no_delete is false, proceed with the deletion of files
+
     Logger.info("Deleting Files...");
     for entry in fs::read_dir(&dst_path)? {
         let entry = entry?;
