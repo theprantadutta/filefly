@@ -6,7 +6,22 @@ FileFly is a Rust command-line utility for handling file and folder operations s
 
 ### Installation
 
-To use FileFly, make sure you have Rust installed. Then, you can build the project using the following command:
+# Windows Installation
+
+Just run the following two commands with Powershell (not CMD)
+
+```shell
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+[System.Net.WebClient]::new().DownloadString('https://raw.githubusercontent.com/theprantadutta/filefly/master/install.ps1') | iex
+```
+
+# Linux Installation
+
+```shell
+curl -L https://github.com/theprantadutta/filefly/raw/master/install.sh | bash
+```
+
+To directy use FileFly, make sure you have Rust installed. Then, you can build the project using the following command:
 
 ```bash
 cargo build --release
