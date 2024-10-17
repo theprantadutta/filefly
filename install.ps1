@@ -18,9 +18,12 @@ if (-Not (Test-Path $installDir)) {
 }
 
 # Download the binary for Windows
-$exePath = "$installDir\filefly_$version.exe"
+$exePath = "$installDir\filefly_v$version.exe"
 Write-Host "Downloading Filefly version $version for Windows..."
 Invoke-WebRequest -Uri $windowsAssetUrl -OutFile $exePath
+
+# Rename the downloaded file to "filefly.exe" for consistency
+Rename-Item -Path $exePath -NewName "$installDir\filefly.exe"
 
 # Add to PATH for current session
 $env:Path += ";$installDir"
