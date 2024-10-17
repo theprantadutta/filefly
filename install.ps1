@@ -9,8 +9,8 @@ $version = $latestRelease.tag_name
 # Find the download URL for the Windows version
 $windowsAssetUrl = $latestRelease.assets | Where-Object { $_.name -like "*windows.exe" } | Select-Object -ExpandProperty browser_download_url
 
-# Define installation path in user directory
-$installDir = "$HOME\AppData\Local\filefly"
+# Define installation path in the user's directory
+$installDir = "$HOME\AppData\Local\Programs\filefly"
 
 # Check if directory exists, create if not
 if (-Not (Test-Path $installDir)) {
@@ -25,7 +25,13 @@ Invoke-WebRequest -Uri $windowsAssetUrl -OutFile $exePath
 # Rename the downloaded file to "filefly.exe" for consistency
 Rename-Item -Path $exePath -NewName "$installDir\filefly.exe"
 
-# Add to PATH for current session
-$env:Path += ";$installDir"
+# Add to user's PATH permanently
+$envPath = [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::User)
+if (-not $envPath.Split(";").Contains($installDir)) {
+    [Environment]::SetEnvironmentVariable("Path", "$envPath;$installDir", [EnvironmentVariableTarget]::User)
+    Write-Host "Added $installDir to the user's PATH."
+} else {
+    Write-Host "$installDir is already in the user's PATH."
+}
 
 Write-Host "Filefly v$version installed successfully in $installDir!"
