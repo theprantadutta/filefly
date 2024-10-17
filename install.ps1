@@ -23,7 +23,12 @@ Write-Host "Downloading Filefly version $version for Windows..."
 Invoke-WebRequest -Uri $windowsAssetUrl -OutFile $exePath
 
 # Rename the downloaded file to "filefly.exe" for consistency
-Rename-Item -Path $exePath -NewName "$installDir\filefly.exe"
+$finalExePath = "$installDir\filefly.exe"
+if (-Not (Test-Path $finalExePath)) {
+    Rename-Item -Path $exePath -NewName $finalExePath
+} else {
+    Write-Host "filefly.exe already exists in $installDir. Skipping rename."
+}
 
 # Add to user's PATH permanently
 $envPath = [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::User)
