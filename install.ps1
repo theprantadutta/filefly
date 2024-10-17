@@ -47,6 +47,12 @@ try {
 # Rename the downloaded file to "filefly.exe" for consistency
 $finalExePath = "$installDir\filefly.exe"
 if (Test-Path $exePath) {
+    # Rename the downloaded file to "filefly.exe" for consistency
+    $finalExePath = "$installDir\filefly.exe"
+    if (Test-Path $finalExePath) {
+        Write-Host "Existing filefly.exe found. Deleting..."
+        Remove-Item -Path $finalExePath -Force
+    }
     Rename-Item -Path $exePath -NewName $finalExePath
 } else {
     Write-Host "Downloaded file not found. Something went wrong."
