@@ -36,7 +36,7 @@ pub fn copy_files_with_progress(src: impl AsRef<Path>, dst: impl AsRef<Path>) ->
 
             pb.set_style(
                 ProgressStyle::with_template(
-                    "{spinner:.cyan} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta})"
+                    "{spinner:.cyan} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes:>12}/{total_bytes:<12} ({eta}) {bytes_per_sec:>10} MB/s"
                 )
                 .unwrap()
                 .progress_chars("#>-"),
@@ -111,7 +111,7 @@ pub fn copy_single_file_with_progress(
 
     pb.set_style(
         ProgressStyle::with_template(
-            "{spinner:.cyan} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta})"
+            "{spinner:.cyan} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes:>12}/{total_bytes:<12} ({eta}) {bytes_per_sec:>10} MB/s"
         )
         .unwrap()
         .progress_chars("#>-"),
