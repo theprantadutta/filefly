@@ -5,7 +5,10 @@ use std::path::Path;
 use std::{fs, io};
 
 // Function to delete a folder with progress
-pub fn delete_folder_with_progress(folder_path: impl AsRef<Path>) -> io::Result<()> {
+pub fn delete_folder_with_progress(
+    logger: &Logger,
+    folder_path: impl AsRef<Path>,
+) -> io::Result<()> {
     // Check if the folder exists
     if !folder_path.as_ref().exists() {
         return Err(Error::new(ErrorKind::NotFound, "Folder not found"));
@@ -25,7 +28,7 @@ pub fn delete_folder_with_progress(folder_path: impl AsRef<Path>) -> io::Result<
     );
 
     // Delete folder recursively
-    delete_folder_recursive_with_progress(&folder_path, &pb)?;
+    delete_folder_recursive_with_progress(&logger, &folder_path, &pb)?;
 
     // Finish progress bar with "done" message
     pb.finish_with_message("done");
@@ -35,6 +38,7 @@ pub fn delete_folder_with_progress(folder_path: impl AsRef<Path>) -> io::Result<
 
 // Recursive function to delete a folder with progress
 fn delete_folder_recursive_with_progress(
+    logger: &Logger,
     folder_path: impl AsRef<Path>,
     pb: &ProgressBar,
 ) -> io::Result<()> {
@@ -46,10 +50,10 @@ fn delete_folder_recursive_with_progress(
         // Check if entry is a directory
         if ty.is_dir() {
             // Recursively call the function for subdirectories
-            delete_folder_recursive_with_progress(entry.path(), pb)?;
+            delete_folder_recursive_with_progress(&logger, entry.path(), pb)?;
         } else {
             // Log information about the file being deleted
-            Logger.info(&format!(
+            logger.info(&format!(
                 "Deleting File {}",
                 entry.file_name().to_str().unwrap()
             ));
@@ -72,7 +76,10 @@ fn delete_folder_recursive_with_progress(
 }
 
 // Function to delete a single file with progress
-pub fn delete_single_file_with_progress(file_path: impl AsRef<Path>) -> io::Result<()> {
+pub fn delete_single_file_with_progress(
+    logger: &Logger,
+    file_path: impl AsRef<Path>,
+) -> io::Result<()> {
     // Check if the file exists
     if !file_path.as_ref().exists() {
         return Err(Error::new(ErrorKind::NotFound, "File not found"));
@@ -92,7 +99,7 @@ pub fn delete_single_file_with_progress(file_path: impl AsRef<Path>) -> io::Resu
     );
 
     // Log information about the file being deleted
-    Logger.info(&format!(
+    logger.info(&format!(
         "Deleting File: {}",
         file_path.as_ref().file_name().unwrap().to_str().unwrap()
     ));

@@ -12,31 +12,46 @@ pub fn handle_copy_command(command: CopyCommand) {
     // Variable to hold the result of the copy operation
     let result: Result<(), Error>;
 
+    let logger = Logger::new(Some(command.log_level.clone()), Some(command.no_log));
     // Check if the source path is a directory
     if PathBuf::from(&command.source).is_dir() {
-        Logger.debug(&format!("Given Path is a Directory"));
-        Logger.debug(&format!(
+        logger.debug(&format!("Given Path is a Directory"));
+        logger.debug(&format!(
             "Copying Folder {} To {}",
             command.source, command.destination
         ));
         // Copy files from the source directory to the destination with progress
-        result = copy_files_with_progress(&command.source, &command.destination);
+        result = copy_files_with_progress(
+            &logger,
+            &command.source,
+            &command.destination,
+            command.no_log,
+        );
     } else {
-        Logger.debug(&format!("Given Path is a File"));
-        Logger.debug(&format!(
+        logger.debug(&format!("Given Path is a File"));
+        logger.debug(&format!(
             "Copying File From {} To {}",
             command.source, command.destination
         ));
         // Copy a single file from the source to the destination with progress
-        result = copy_single_file_with_progress(&command.source, &command.destination);
+        result = copy_single_file_with_progress(
+            &logger,
+            &command.source,
+            &command.destination,
+            command.no_log,
+        );
     }
 
     // Handle the result of the copy operation
     match result {
-        Ok(_) => Logger.success("Copying Successful"),
+        Ok(_) => {
+            // Start the logger
+            let logger = Logger::default();
+            logger.success("Copying Successful")
+        }
         Err(e) => {
             // Log an error message if copying fails and print the error details
-            Logger.error("Copying Failed with error");
+            logger.error("Copying Failed with error");
             println!("{}", e);
         }
     }

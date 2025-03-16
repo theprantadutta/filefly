@@ -7,9 +7,11 @@ use super::copy_file_and_folders::copy_single_file_with_progress;
 
 // Function to synchronize folders between source and destination
 pub fn synchronize_folders(
+    logger: &Logger,
     src: impl AsRef<Path>,
     dst: impl AsRef<Path>,
-    no_delete: &bool, // Added the no_delete flag
+    no_delete: &bool,
+    no_log: bool,
 ) -> io::Result<()> {
     // Create destination directory if it doesn't exist
     fs::create_dir_all(&dst)?;
@@ -32,7 +34,7 @@ pub fn synchronize_folders(
         let path = entry.path();
 
         // Log the synchronization process for the current entry
-        Logger.debug(&format!(
+        logger.debug(&format!(
             "Synchronizing {} with {}...",
             path.to_str().unwrap(),
             dst_path.to_str().unwrap()
@@ -46,20 +48,22 @@ pub fn synchronize_folders(
                 if ty.is_dir() {
                     // If the entry is a directory, recursively synchronize it
                     let result = synchronize_folders(
+                        logger,
                         path.to_str().unwrap(),
                         dst_path.to_str().unwrap(),
                         no_delete,
+                        no_log,
                     );
 
                     match result {
-                        Ok(_) => Logger.success(&format!(
+                        Ok(_) => logger.success(&format!(
                             "Synchronized {} with {} Successfully",
                             path.to_str().unwrap(),
                             dst_path.to_str().unwrap()
                         )),
                         Err(e) => {
                             // Log an error message if synchronization fails for the directory
-                            Logger.error(&format!(
+                            logger.error(&format!(
                                 "Synchronizing Failed from {} with {} with error",
                                 path.to_str().unwrap(),
                                 dst_path.to_str().unwrap()
@@ -70,7 +74,7 @@ pub fn synchronize_folders(
                 } else {
                     if fs::metadata(&dst_path).is_ok() {
                         // If the entry is a file and it already exists at the destination, log an info message
-                        Logger.info("File already exists at the destination.");
+                        logger.info("File already exists at the destination.");
                     } else {
                         let dst_parent = dst_path.parent().ok_or_else(|| {
                             // Log an error if the destination parent directory is invalid
@@ -81,16 +85,17 @@ pub fn synchronize_folders(
                         })?;
 
                         // Copy the single file to the destination
-                        let result = copy_single_file_with_progress(&path, &dst_parent);
+                        let result =
+                            copy_single_file_with_progress(&logger, &path, &dst_parent, no_log);
                         match result {
-                            Ok(_) => Logger.success(&format!(
+                            Ok(_) => logger.success(&format!(
                                 "Copied from {} to {} Successfully",
                                 path.to_str().unwrap(),
                                 dst_path.to_str().unwrap()
                             )),
                             Err(e) => {
                                 // Log an error message if copying the file fails
-                                Logger.error("Synchronizing Failed with error");
+                                logger.error("Synchronizing Failed with error");
                                 println!("{}", e);
                             }
                         }
@@ -106,13 +111,13 @@ pub fn synchronize_folders(
 
     // Check if no_delete is true
     if *no_delete {
-        Logger.info("Skipping File Deletion...");
+        logger.info("Skipping File Deletion...");
         return Ok(());
     }
 
     // If no_delete is false, proceed with the deletion of files
 
-    Logger.info("Deleting Files...");
+    logger.info("Deleting Files...");
     for entry in fs::read_dir(&dst_path)? {
         let entry = entry?;
         let ty = entry.file_type()?;
@@ -131,7 +136,7 @@ pub fn synchronize_folders(
                         format!("Failed to delete directory {}: {}", path.display(), e),
                     )
                 })?;
-                Logger.success(&format!("Deleted directory: {}", path.display()));
+                logger.success(&format!("Deleted directory: {}", path.display()));
             } else {
                 // Delete the file
                 fs::remove_file(&path).map_err(|e| {
@@ -140,7 +145,7 @@ pub fn synchronize_folders(
                         format!("Failed to delete file {}: {}", path.display(), e),
                     )
                 })?;
-                Logger.success(&format!("Deleted file: {}", path.display()));
+                logger.success(&format!("Deleted file: {}", path.display()));
             }
         }
     }

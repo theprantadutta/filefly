@@ -65,6 +65,27 @@ Synchronize a file or folder with another.
 filefly synchronize -s source_path -d destination_path
 ```
 
+We also support a few flags as well.
+
+1. Disable logging.
+
+```
+filefly copy -s source_path -d destination_path --no-log
+```
+
+This will work for replace, delete, synchronize as well.
+
+2. Provide Log Level
+
+```
+filefly copy -s source_path -d destination_path --log-level=Debug
+```
+
+Will accept any of the following
+Log level (debug, info, success, warning, error)
+
+This will work for replace, delete, synchronize as well.
+
 ## Features
 
 - **Progress Tracking:** FileFly displays progress bars for file operations, keeping you informed about the ongoing tasks.

@@ -1,5 +1,7 @@
 use clap::Parser;
 
+use crate::logger::LogLevel;
+
 // Define command-line argument structure using the clap parser
 #[derive(Parser, Debug)]
 #[clap(name = "command")]
@@ -35,6 +37,9 @@ pub enum FileFlyArgs {
         about = "Synchronize a file/folder with another"
     )]
     Synchronize(SynchronizeCommand),
+
+    #[clap(name = "upgrade", about = "Upgrade Filefly to Latest Version")]
+    Upgrade(UpgradeCommand),
 }
 
 // Define subcommand structures for each operation
@@ -48,6 +53,14 @@ pub struct CopyCommand {
     /// Destination directory
     #[clap(short, long)]
     pub destination: String,
+
+    /// Disable logging
+    #[clap(long, default_value_t = false)] // Optional, defaults to false
+    pub no_log: bool,
+
+    /// Log level (debug, info, success, warning, error)
+    #[clap(long, value_parser, default_value = "info")]
+    pub log_level: LogLevel,
 }
 
 #[derive(Parser, Debug)]
@@ -60,6 +73,14 @@ pub struct ReplaceCommand {
     /// Destination directory
     #[clap(short, long)]
     pub destination: String,
+
+    /// Disable logging
+    #[clap(long, default_value_t = false)] // Optional, defaults to false
+    pub no_log: bool,
+
+    /// Log level (debug, info, success, warning, error)
+    #[clap(long, value_parser, default_value = "info")]
+    pub log_level: LogLevel,
 }
 
 #[derive(Parser, Debug)]
@@ -68,6 +89,14 @@ pub struct DeleteCommand {
     /// Folder to delete
     #[clap(short, long)]
     pub folder: String,
+
+    /// Disable logging
+    #[clap(long, default_value_t = false)] // Optional, defaults to false
+    pub no_log: bool,
+
+    /// Log level (debug, info, success, warning, error)
+    #[clap(long, value_parser, default_value = "info")]
+    pub log_level: LogLevel,
 }
 
 #[derive(Parser, Debug)]
@@ -84,4 +113,16 @@ pub struct SynchronizeCommand {
     /// Do not delete files
     #[clap(long)]
     pub no_delete: bool,
+
+    /// Disable logging
+    #[clap(long, default_value_t = false)] // Optional, defaults to false
+    pub no_log: bool,
+
+    /// Log level (debug, info, success, warning, error)
+    #[clap(long, value_parser, default_value = "info")]
+    pub log_level: LogLevel,
 }
+
+#[derive(Parser, Debug)]
+#[clap(name = "subcommand")]
+pub struct UpgradeCommand {}
