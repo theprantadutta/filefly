@@ -5,7 +5,7 @@ use std::time::Duration;
 use std::{fs, io};
 
 use crate::logger::Logger;
-use crate::progress_style::copy_style;
+use crate::progress_style::{copy_prefix, copy_style};
 
 const BUFFER_SIZE: usize = 8192;
 
@@ -40,7 +40,7 @@ pub fn copy_files_with_progress(
             let pb = if !no_log {
                 let pb = ProgressBar::with_draw_target(Some(file_len), ProgressDrawTarget::stderr());
                 pb.set_style(copy_style());
-                pb.set_prefix(format!("\u{21AA} {}", entry.file_name().to_string_lossy()));
+                pb.set_prefix(copy_prefix(&entry.file_name().to_string_lossy()));
                 pb.enable_steady_tick(Duration::from_millis(90));
                 Some(pb)
             } else {
@@ -110,7 +110,7 @@ pub fn copy_single_file_with_progress(
     let pb = if !no_log {
         let pb = ProgressBar::with_draw_target(Some(file_len), ProgressDrawTarget::stderr());
         pb.set_style(copy_style());
-        pb.set_prefix(format!("\u{21AA} {}", file_name.to_string_lossy()));
+        pb.set_prefix(copy_prefix(&file_name.to_string_lossy()));
         pb.enable_steady_tick(Duration::from_millis(90));
         Some(pb)
     } else {

@@ -4,6 +4,29 @@ use indicatif::{ProgressState, ProgressStyle};
 const SUBCELL_CHARS: [char; 9] = [' ', '\u{258F}', '\u{258E}', '\u{258D}', '\u{258C}', '\u{258B}', '\u{258A}', '\u{2589}', '\u{2588}'];
 const TICK_CHARS: &str = "\u{280B}\u{2819}\u{2839}\u{2838}\u{283C}\u{2834}\u{2826}\u{2827}\u{2807}\u{280F} ";
 const BAR_WIDTH: usize = 36;
+const NAME_WIDTH: usize = 40;
+
+const COPY_ICON: &str = "\u{21AA}";
+const DELETE_ICON: &str = "\u{2716}";
+
+fn fit_name(name: &str) -> String {
+    let count = name.chars().count();
+    if count > NAME_WIDTH {
+        let truncated: String = name.chars().take(NAME_WIDTH - 1).collect();
+        format!("{truncated}\u{2026}")
+    } else {
+        let pad = NAME_WIDTH - count;
+        format!("{name}{}", " ".repeat(pad))
+    }
+}
+
+pub fn copy_prefix(name: &str) -> String {
+    format!("{} {}", COPY_ICON, fit_name(name))
+}
+
+pub fn delete_prefix(name: &str) -> String {
+    format!("{} {}", DELETE_ICON, fit_name(name))
+}
 
 fn build_gradient(stops: &[&str]) -> LinearGradient {
     GradientBuilder::new()

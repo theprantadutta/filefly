@@ -1,5 +1,5 @@
 use crate::logger::Logger;
-use crate::progress_style::delete_style;
+use crate::progress_style::{delete_prefix, delete_style};
 use indicatif::{ProgressBar, ProgressDrawTarget};
 use std::io::{Error, ErrorKind};
 use std::path::Path;
@@ -20,10 +20,7 @@ pub fn delete_folder_with_progress(
     let pb = if !no_log {
         let pb = ProgressBar::with_draw_target(Some(total_size), ProgressDrawTarget::stderr());
         pb.set_style(delete_style());
-        pb.set_prefix(format!(
-            "\u{2716} {}",
-            folder_path.as_ref().display()
-        ));
+        pb.set_prefix(delete_prefix(&folder_path.as_ref().display().to_string()));
         pb.enable_steady_tick(Duration::from_millis(90));
         Some(pb)
     } else {
@@ -97,7 +94,7 @@ pub fn delete_single_file_with_progress(
             .file_name()
             .map(|n| n.to_string_lossy().into_owned())
             .unwrap_or_else(|| file_path.as_ref().display().to_string());
-        pb.set_prefix(format!("\u{2716} {}", label));
+        pb.set_prefix(delete_prefix(&label));
         pb.enable_steady_tick(Duration::from_millis(90));
         Some(pb)
     } else {
