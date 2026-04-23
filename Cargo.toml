@@ -16,9 +16,10 @@ panic = "abort"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-colored = "3.0.0"
+owo-colors = "4"
+colorgrad = "0.8"
 chrono = "0.4.40"
-indicatif = "0.17.11"
+indicatif = { version = "0.18", features = ["improved_unicode"] }
 clap = { version = "4.5.32", features = ["derive"] }
 reqwest = { version = "0.12.14", default-features = false, features = ["blocking", "json", "rustls-tls"] }
 serde_json = "1.0.140"

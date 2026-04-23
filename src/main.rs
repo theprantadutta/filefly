@@ -12,6 +12,7 @@ mod file_service;
 mod filefly_args;
 mod handlers;
 mod logger;
+mod progress_style;
 
 fn main() {
     let args = FileFlyArgs::parse();

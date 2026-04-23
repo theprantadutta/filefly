@@ -1,9 +1,11 @@
-use indicatif::{ProgressBar, ProgressStyle};
+use indicatif::{ProgressBar, ProgressDrawTarget};
 use std::io::{Read, Write};
 use std::path::Path;
+use std::time::Duration;
 use std::{fs, io};
 
 use crate::logger::Logger;
+use crate::progress_style::copy_style;
 
 const BUFFER_SIZE: usize = 8192;
 
@@ -27,24 +29,19 @@ pub fn copy_files_with_progress(
                 no_log,
             )?;
         } else {
-            if !no_log {
-                logger.info(&format!(
-                    "Copying Files From {}",
-                    entry.file_name().to_string_lossy()
-                ));
-            }
-
             let file_len = entry.metadata()?.len();
 
+            logger.debug(&format!(
+                "copy {} ({} bytes)",
+                entry.file_name().to_string_lossy(),
+                file_len
+            ));
+
             let pb = if !no_log {
-                let pb = ProgressBar::new(file_len);
-                pb.set_style(
-                    ProgressStyle::with_template(
-                        "{spinner:.cyan} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes:>12}/{total_bytes:<12} ({eta}) {bytes_per_sec:>10} MB/s"
-                    )
-                    .unwrap()
-                    .progress_chars("#>-"),
-                );
+                let pb = ProgressBar::with_draw_target(Some(file_len), ProgressDrawTarget::stderr());
+                pb.set_style(copy_style());
+                pb.set_prefix(format!("\u{21AA} {}", entry.file_name().to_string_lossy()));
+                pb.enable_steady_tick(Duration::from_millis(90));
                 Some(pb)
             } else {
                 None
@@ -102,21 +99,19 @@ pub fn copy_single_file_with_progress(
         io::Error::new(io::ErrorKind::InvalidInput, "Source has no file name")
     })?;
 
-    if !no_log {
-        logger.info(&format!("Copying File: {}", file_name.to_string_lossy()));
-    }
-
     let file_len = src_path.metadata()?.len();
 
+    logger.debug(&format!(
+        "copy {} ({} bytes)",
+        file_name.to_string_lossy(),
+        file_len
+    ));
+
     let pb = if !no_log {
-        let pb = ProgressBar::new(file_len);
-        pb.set_style(
-            ProgressStyle::with_template(
-                "{spinner:.cyan} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes:>12}/{total_bytes:<12} ({eta}) {bytes_per_sec:>10} MB/s"
-            )
-            .unwrap()
-            .progress_chars("#>-"),
-        );
+        let pb = ProgressBar::with_draw_target(Some(file_len), ProgressDrawTarget::stderr());
+        pb.set_style(copy_style());
+        pb.set_prefix(format!("\u{21AA} {}", file_name.to_string_lossy()));
+        pb.enable_steady_tick(Duration::from_millis(90));
         Some(pb)
     } else {
         None

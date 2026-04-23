@@ -1,8 +1,7 @@
 use chrono::{DateTime, Local};
 use clap::ValueEnum;
-use colored::*;
+use owo_colors::OwoColorize;
 
-// Define an enum for log levels
 #[derive(Debug, PartialEq, PartialOrd, Clone, Copy, ValueEnum)]
 pub enum LogLevel {
     Debug,
@@ -12,72 +11,73 @@ pub enum LogLevel {
     Error,
 }
 
-// Define a logger struct
 pub struct Logger {
-    min_log_level: LogLevel, // Minimum log level to display
-    no_log: bool,            // Whether to suppress logs
+    min_log_level: LogLevel,
+    no_log: bool,
 }
 
 impl Default for Logger {
     fn default() -> Self {
         Logger {
-            min_log_level: LogLevel::Info, // Default minimum log level is Info
-            no_log: false,                 // Default to showing logs
+            min_log_level: LogLevel::Info,
+            no_log: false,
         }
     }
 }
 
 impl Logger {
-    // Constructor to create a new Logger with optional minimum log level and no_log flag
     pub fn new(min_log_level: Option<LogLevel>, no_log: Option<bool>) -> Self {
         Logger {
-            min_log_level: min_log_level.unwrap_or(LogLevel::Info), // Default to Info if None
-            no_log: no_log.unwrap_or(false),                        // Default to false if None
+            min_log_level: min_log_level.unwrap_or(LogLevel::Info),
+            no_log: no_log.unwrap_or(false),
         }
     }
 
-    // Function to get the current timestamp
     fn get_timestamp() -> DateTime<Local> {
         Local::now()
     }
 
-    // Function to format the timestamp as a string
     fn format_timestamp(timestamp: DateTime<Local>) -> String {
-        // Format the timestamp with year-month-day hour:minute:second am/pm
-        timestamp.format("%Y-%m-%d %I:%M:%S %p").to_string()
+        timestamp.format("%H:%M:%S").to_string()
     }
 
-    // Function to apply color to the log message based on log level
     fn colored_log(&self, level: LogLevel, message: &str) {
-        // Check if logging is disabled
         if self.no_log && level != LogLevel::Error {
             return;
         }
 
-        // Check if the log level is below the minimum log level
         if level < self.min_log_level {
-            return; // Ignore logs below the minimum level
+            return;
         }
 
-        // Get the current timestamp
-        let timestamp = Self::get_timestamp();
-        // Format the timestamp as a string
-        let formatted_timestamp = Self::format_timestamp(timestamp);
+        let ts = Self::format_timestamp(Self::get_timestamp());
+        let (label, rgb): (&str, (u8, u8, u8)) = match level {
+            LogLevel::Debug => ("DEBUG  ", (148, 163, 184)),
+            LogLevel::Info => ("INFO   ", (56, 189, 248)),
+            LogLevel::Success => ("SUCCESS", (16, 185, 129)),
+            LogLevel::Warning => ("WARN   ", (245, 158, 11)),
+            LogLevel::Error => ("ERROR  ", (239, 68, 68)),
+        };
 
-        // Create a formatted log message including timestamp, level, and the actual message
-        let formatted_message = format!("{} [{:?}]: {}", formatted_timestamp, level, message);
+        let ts_styled = format!("\u{2502} {} \u{2502}", ts);
+        let label_styled = label.truecolor(rgb.0, rgb.1, rgb.2).bold().to_string();
 
-        // Print the log message with color based on the log level
-        match level {
-            LogLevel::Success => println!("{}", formatted_message.bright_green()), // Apply bright green color to success logs
-            LogLevel::Error => println!("{}", formatted_message.bright_red()), // Apply bright red color to error logs
-            LogLevel::Warning => println!("{}", formatted_message.bright_yellow()), // Apply bright yellow color to warning logs
-            LogLevel::Info => println!("{}", formatted_message.bright_cyan()), // Apply bright cyan color to info logs
-            LogLevel::Debug => println!("{}", formatted_message.bright_blue()), // Apply bright blue color to debug logs
-        }
+        let message_styled = match level {
+            LogLevel::Error => message.truecolor(252, 165, 165).to_string(),
+            LogLevel::Warning => message.truecolor(253, 224, 71).to_string(),
+            LogLevel::Success => message.truecolor(134, 239, 172).to_string(),
+            LogLevel::Debug => message.dimmed().to_string(),
+            LogLevel::Info => message.to_string(),
+        };
+
+        println!(
+            "{} {}  {}",
+            ts_styled.dimmed(),
+            label_styled,
+            message_styled
+        );
     }
 
-    // Convenience functions for different log levels that call colored_log with their respective log level
     pub fn success(&self, message: &str) {
         self.colored_log(LogLevel::Success, message);
     }
