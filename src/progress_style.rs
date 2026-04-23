@@ -3,8 +3,8 @@ use indicatif::{ProgressState, ProgressStyle};
 
 const SUBCELL_CHARS: [char; 9] = [' ', '\u{258F}', '\u{258E}', '\u{258D}', '\u{258C}', '\u{258B}', '\u{258A}', '\u{2589}', '\u{2588}'];
 const TICK_CHARS: &str = "\u{280B}\u{2819}\u{2839}\u{2838}\u{283C}\u{2834}\u{2826}\u{2827}\u{2807}\u{280F} ";
-const BAR_WIDTH: usize = 36;
-const NAME_WIDTH: usize = 40;
+const BAR_WIDTH: usize = 28;
+const NAME_WIDTH: usize = 36;
 
 const COPY_ICON: &str = "\u{21AA}";
 const DELETE_ICON: &str = "\u{2716}";
