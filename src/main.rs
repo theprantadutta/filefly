@@ -6,7 +6,7 @@ use handlers::{
     handle_synchronize_command::handle_synchronize_command,
     handle_upgrade_command::handle_upgrade_command,
 };
-use logger::Logger;
+use logger::{LogLevel, Logger};
 
 mod file_service;
 mod filefly_args;
@@ -14,15 +14,20 @@ mod handlers;
 mod logger;
 
 fn main() {
-    // Parse command line arguments
     let args = FileFlyArgs::parse();
 
-    let logger = Logger::default();
+    let (no_log, log_level) = match &args {
+        FileFlyArgs::Copy(c) => (c.no_log, c.log_level),
+        FileFlyArgs::Delete(c) => (c.no_log, c.log_level),
+        FileFlyArgs::Replace(c) => (c.no_log, c.log_level),
+        FileFlyArgs::Synchronize(c) => (c.no_log, c.log_level),
+        FileFlyArgs::Upgrade(_) => (false, LogLevel::Info),
+    };
 
-    // Record the start time
+    let logger = Logger::new(Some(log_level), Some(no_log));
+
     let start_time = std::time::Instant::now();
 
-    // Handle different commands based on the parsed arguments
     match args {
         FileFlyArgs::Copy(command) => handle_copy_command(command),
         FileFlyArgs::Delete(command) => handle_delete_command(command),
@@ -35,7 +40,6 @@ fn main() {
         }
     }
 
-    // Calculate and print the elapsed time
     let elapsed_time = start_time.elapsed();
     logger.info(&format!(
         "Time taken: {:.2} seconds ({:.2} milliseconds)",

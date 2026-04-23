@@ -7,193 +7,35 @@ use crate::logger::Logger;
 
 const BUFFER_SIZE: usize = 8192;
 
-// // Function to copy files with progress from source to destination directory
-// pub fn copy_files_with_progress(
-//     logger: &Logger,
-//     src: impl AsRef<Path>,
-//     dst: impl AsRef<Path>,
-// ) -> io::Result<()> {
-//     // Create destination directory if it does not exist
-//     fs::create_dir_all(&dst)?;
-
-//     // Iterate through the entries in the source directory
-//     for entry in fs::read_dir(src)? {
-//         let entry = entry?;
-//         let ty = entry.file_type()?;
-
-//         // Check if entry is a directory
-//         if ty.is_dir() {
-//             // Recursively call the function for subdirectories
-//             copy_files_with_progress(&logger, entry.path(), dst.as_ref().join(entry.file_name()))?;
-//         } else {
-//             // Log information about the file being copied
-//             logger.info(&format!(
-//                 "Copying Files From {}",
-//                 entry.file_name().to_str().unwrap()
-//             ));
-
-//             // Get file length for progress bar
-//             let file_len = entry.metadata()?.len();
-
-//             // Initialize progress bar
-//             let pb = ProgressBar::new(file_len);
-
-//             pb.set_style(
-//                 ProgressStyle::with_template(
-//                     "{spinner:.cyan} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes:>12}/{total_bytes:<12} ({eta}) {bytes_per_sec:>10} MB/s"
-//                 )
-//                 .unwrap()
-//                 .progress_chars("#>-"),
-//             );
-
-//             // Open source file for reading
-//             let mut src_file = fs::File::open(&entry.path())?;
-
-//             // Create destination file for writing
-//             let mut dst_file = fs::File::create(dst.as_ref().join(entry.file_name()))?;
-
-//             // Initialize buffer for file copy
-//             let mut buffer = [0u8; BUFFER_SIZE];
-
-//             // Main loop for file copy
-//             loop {
-//                 match src_file.read(&mut buffer) {
-//                     Ok(0) => break, // Reached the end of the file
-//                     Ok(bytes_read) => {
-//                         // Write buffer to destination file
-//                         dst_file.write_all(&buffer[..bytes_read])?;
-
-//                         // Increment progress bar
-//                         pb.inc(bytes_read as u64);
-//                     }
-//                     Err(err) => {
-//                         // Handle error during file read
-//                         eprintln!("Error reading file: {}", err);
-//                         pb.finish_with_message("error");
-//                         return Err(err);
-//                     }
-//                 }
-//             }
-
-//             // Finish progress bar with "done" message
-//             pb.finish_with_message("done");
-//         }
-//     }
-
-//     // Return OK result if everything succeeds
-//     Ok(())
-// }
-
-// // Function to copy a single file with progress from source to destination
-// pub fn copy_single_file_with_progress(
-//     logger: &Logger,
-//     src: impl AsRef<Path>,
-//     dst: impl AsRef<Path>,
-// ) -> io::Result<()> {
-//     // Ensure src is a file
-//     let src_path = src.as_ref();
-//     if !src_path.is_file() {
-//         return Err(io::Error::new(
-//             io::ErrorKind::InvalidInput,
-//             "Source is not a file",
-//         ));
-//     }
-
-//     // Create destination directory if it does not exist
-//     fs::create_dir_all(&dst)?;
-
-//     // Log information about the file being copied
-//     logger.info(&format!(
-//         "Copying File: {}",
-//         src_path.file_name().unwrap().to_str().unwrap()
-//     ));
-
-//     // Get file length for progress bar
-//     let file_len = src_path.metadata()?.len();
-
-//     // Initialize progress bar
-//     let pb = ProgressBar::new(file_len);
-
-//     pb.set_style(
-//         ProgressStyle::with_template(
-//             "{spinner:.cyan} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes:>12}/{total_bytes:<12} ({eta}) {bytes_per_sec:>10} MB/s"
-//         )
-//         .unwrap()
-//         .progress_chars("#>-"),
-//     );
-
-//     // Open source file for reading
-//     let mut src_file = fs::File::open(src_path)?;
-
-//     // Create destination file for writing
-//     let mut dst_file = fs::File::create(dst.as_ref().join(src_path.file_name().unwrap()))?;
-
-//     // Initialize buffer for file copy
-//     let mut buffer = [0u8; BUFFER_SIZE];
-
-//     // Main loop for file copy
-//     loop {
-//         match src_file.read(&mut buffer) {
-//             Ok(0) => break, // Reached the end of the file
-//             Ok(bytes_read) => {
-//                 // Write buffer to destination file
-//                 dst_file.write_all(&buffer[..bytes_read])?;
-
-//                 // Increment progress bar
-//                 pb.inc(bytes_read as u64);
-//             }
-//             Err(err) => {
-//                 // Handle error during file read
-//                 eprintln!("Error reading file: {}", err);
-//                 pb.finish_with_message("error");
-//                 return Err(err);
-//             }
-//         }
-//     }
-
-//     // Finish progress bar with "done" message
-//     pb.finish_with_message("done");
-
-//     Ok(())
-// }
-
-// Function to copy files with progress from source to destination directory
 pub fn copy_files_with_progress(
     logger: &Logger,
     src: impl AsRef<Path>,
     dst: impl AsRef<Path>,
-    no_log: bool, // Add no_log parameter
+    no_log: bool,
 ) -> io::Result<()> {
-    // Create destination directory if it does not exist
     fs::create_dir_all(&dst)?;
 
-    // Iterate through the entries in the source directory
     for entry in fs::read_dir(src)? {
         let entry = entry?;
         let ty = entry.file_type()?;
 
-        // Check if entry is a directory
         if ty.is_dir() {
-            // Recursively call the function for subdirectories
             copy_files_with_progress(
-                &logger,
+                logger,
                 entry.path(),
                 dst.as_ref().join(entry.file_name()),
                 no_log,
             )?;
         } else {
-            // Log information about the file being copied (if logging is enabled)
             if !no_log {
                 logger.info(&format!(
                     "Copying Files From {}",
-                    entry.file_name().to_str().unwrap()
+                    entry.file_name().to_string_lossy()
                 ));
             }
 
-            // Get file length for progress bar
             let file_len = entry.metadata()?.len();
 
-            // Initialize progress bar (if logging is enabled)
             let pb = if !no_log {
                 let pb = ProgressBar::new(file_len);
                 pb.set_style(
@@ -208,30 +50,20 @@ pub fn copy_files_with_progress(
                 None
             };
 
-            // Open source file for reading
-            let mut src_file = fs::File::open(&entry.path())?;
-
-            // Create destination file for writing
+            let mut src_file = fs::File::open(entry.path())?;
             let mut dst_file = fs::File::create(dst.as_ref().join(entry.file_name()))?;
-
-            // Initialize buffer for file copy
             let mut buffer = [0u8; BUFFER_SIZE];
 
-            // Main loop for file copy
             loop {
                 match src_file.read(&mut buffer) {
-                    Ok(0) => break, // Reached the end of the file
+                    Ok(0) => break,
                     Ok(bytes_read) => {
-                        // Write buffer to destination file
                         dst_file.write_all(&buffer[..bytes_read])?;
-
-                        // Increment progress bar (if logging is enabled)
                         if let Some(ref pb) = pb {
                             pb.inc(bytes_read as u64);
                         }
                     }
                     Err(err) => {
-                        // Handle error during file read
                         eprintln!("Error reading file: {}", err);
                         if let Some(pb) = pb {
                             pb.finish_with_message("error");
@@ -241,25 +73,21 @@ pub fn copy_files_with_progress(
                 }
             }
 
-            // Finish progress bar with "done" message (if logging is enabled)
             if let Some(pb) = pb {
                 pb.finish_with_message("done");
             }
         }
     }
 
-    // Return OK result if everything succeeds
     Ok(())
 }
 
-// Function to copy a single file with progress from source to destination
 pub fn copy_single_file_with_progress(
     logger: &Logger,
     src: impl AsRef<Path>,
     dst: impl AsRef<Path>,
-    no_log: bool, // Add no_log parameter
+    no_log: bool,
 ) -> io::Result<()> {
-    // Ensure src is a file
     let src_path = src.as_ref();
     if !src_path.is_file() {
         return Err(io::Error::new(
@@ -268,21 +96,18 @@ pub fn copy_single_file_with_progress(
         ));
     }
 
-    // Create destination directory if it does not exist
     fs::create_dir_all(&dst)?;
 
-    // Log information about the file being copied (if logging is enabled)
+    let file_name = src_path.file_name().ok_or_else(|| {
+        io::Error::new(io::ErrorKind::InvalidInput, "Source has no file name")
+    })?;
+
     if !no_log {
-        logger.info(&format!(
-            "Copying File: {}",
-            src_path.file_name().unwrap().to_str().unwrap()
-        ));
+        logger.info(&format!("Copying File: {}", file_name.to_string_lossy()));
     }
 
-    // Get file length for progress bar
     let file_len = src_path.metadata()?.len();
 
-    // Initialize progress bar (if logging is enabled)
     let pb = if !no_log {
         let pb = ProgressBar::new(file_len);
         pb.set_style(
@@ -297,30 +122,20 @@ pub fn copy_single_file_with_progress(
         None
     };
 
-    // Open source file for reading
     let mut src_file = fs::File::open(src_path)?;
-
-    // Create destination file for writing
-    let mut dst_file = fs::File::create(dst.as_ref().join(src_path.file_name().unwrap()))?;
-
-    // Initialize buffer for file copy
+    let mut dst_file = fs::File::create(dst.as_ref().join(file_name))?;
     let mut buffer = [0u8; BUFFER_SIZE];
 
-    // Main loop for file copy
     loop {
         match src_file.read(&mut buffer) {
-            Ok(0) => break, // Reached the end of the file
+            Ok(0) => break,
             Ok(bytes_read) => {
-                // Write buffer to destination file
                 dst_file.write_all(&buffer[..bytes_read])?;
-
-                // Increment progress bar (if logging is enabled)
                 if let Some(ref pb) = pb {
                     pb.inc(bytes_read as u64);
                 }
             }
             Err(err) => {
-                // Handle error during file read
                 eprintln!("Error reading file: {}", err);
                 if let Some(pb) = pb {
                     pb.finish_with_message("error");
@@ -330,7 +145,6 @@ pub fn copy_single_file_with_progress(
         }
     }
 
-    // Finish progress bar with "done" message (if logging is enabled)
     if let Some(pb) = pb {
         pb.finish_with_message("done");
     }

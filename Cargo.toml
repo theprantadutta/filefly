@@ -4,7 +4,7 @@ version = "1.1.0"
 edition = "2021"
 authors = ["Pranta Dutta"]
 description = "Better File Utilties"
-homepage = "https://github.com/theprantadutta/fliefly"
+homepage = "https://github.com/theprantadutta/filefly"
 
 [profile.release]
 strip = true      # Automatically strip symbols from the binary.

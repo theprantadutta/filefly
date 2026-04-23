@@ -4,119 +4,116 @@ use std::io::{Error, ErrorKind};
 use std::path::Path;
 use std::{fs, io};
 
-// Function to delete a folder with progress
 pub fn delete_folder_with_progress(
     logger: &Logger,
     folder_path: impl AsRef<Path>,
+    no_log: bool,
 ) -> io::Result<()> {
-    // Check if the folder exists
     if !folder_path.as_ref().exists() {
         return Err(Error::new(ErrorKind::NotFound, "Folder not found"));
     }
 
-    // Get total size of the folder for progress bar
     let total_size = calculate_folder_size(&folder_path)?;
 
-    // Initialize progress bar
-    let pb = ProgressBar::new(total_size);
-    pb.set_style(
-        ProgressStyle::with_template(
-            "{spinner:.cyan} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta})"
-        )
-        .unwrap()
-        .progress_chars("#>-"),
-    );
+    let pb = if !no_log {
+        let pb = ProgressBar::new(total_size);
+        pb.set_style(
+            ProgressStyle::with_template(
+                "{spinner:.cyan} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta})"
+            )
+            .unwrap()
+            .progress_chars("#>-"),
+        );
+        Some(pb)
+    } else {
+        None
+    };
 
-    // Delete folder recursively
-    delete_folder_recursive_with_progress(&logger, &folder_path, &pb)?;
+    delete_folder_recursive_with_progress(logger, &folder_path, pb.as_ref(), no_log)?;
 
-    // Finish progress bar with "done" message
-    pb.finish_with_message("done");
+    if let Some(pb) = pb {
+        pb.finish_with_message("done");
+    }
 
     Ok(())
 }
 
-// Recursive function to delete a folder with progress
 fn delete_folder_recursive_with_progress(
     logger: &Logger,
     folder_path: impl AsRef<Path>,
-    pb: &ProgressBar,
+    pb: Option<&ProgressBar>,
+    no_log: bool,
 ) -> io::Result<()> {
-    // Iterate through the entries in the folder
     for entry in fs::read_dir(&folder_path)? {
         let entry = entry?;
         let ty = entry.file_type()?;
 
-        // Check if entry is a directory
         if ty.is_dir() {
-            // Recursively call the function for subdirectories
-            delete_folder_recursive_with_progress(&logger, entry.path(), pb)?;
+            delete_folder_recursive_with_progress(logger, entry.path(), pb, no_log)?;
         } else {
-            // Log information about the file being deleted
-            logger.info(&format!(
-                "Deleting File {}",
-                entry.file_name().to_str().unwrap()
-            ));
+            if !no_log {
+                logger.info(&format!(
+                    "Deleting File {}",
+                    entry.file_name().to_string_lossy()
+                ));
+            }
 
-            // Get file length for progress bar
             let file_len = entry.metadata()?.len();
 
-            // Increment progress bar
-            pb.inc(file_len);
-
-            // Delete file
             fs::remove_file(entry.path())?;
+
+            if let Some(pb) = pb {
+                pb.inc(file_len);
+            }
         }
     }
 
-    // Delete the empty folder
     fs::remove_dir(&folder_path)?;
 
     Ok(())
 }
 
-// Function to delete a single file with progress
 pub fn delete_single_file_with_progress(
     logger: &Logger,
     file_path: impl AsRef<Path>,
+    no_log: bool,
 ) -> io::Result<()> {
-    // Check if the file exists
     if !file_path.as_ref().exists() {
         return Err(Error::new(ErrorKind::NotFound, "File not found"));
     }
 
-    // Get file length for progress bar
     let file_len = file_path.as_ref().metadata()?.len();
 
-    // Initialize progress bar
-    let pb = ProgressBar::new(file_len);
-    pb.set_style(
-        ProgressStyle::with_template(
-            "{spinner:.cyan} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta})"
-        )
-        .unwrap()
-        .progress_chars("#>-"),
-    );
+    let pb = if !no_log {
+        let pb = ProgressBar::new(file_len);
+        pb.set_style(
+            ProgressStyle::with_template(
+                "{spinner:.cyan} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta})"
+            )
+            .unwrap()
+            .progress_chars("#>-"),
+        );
+        Some(pb)
+    } else {
+        None
+    };
 
-    // Log information about the file being deleted
-    logger.info(&format!(
-        "Deleting File: {}",
-        file_path.as_ref().file_name().unwrap().to_str().unwrap()
-    ));
+    if !no_log {
+        if let Some(name) = file_path.as_ref().file_name() {
+            logger.info(&format!("Deleting File: {}", name.to_string_lossy()));
+        }
+    }
 
-    // Increment progress bar
-    pb.inc(file_len);
+    fs::remove_file(&file_path)?;
 
-    // Delete file
-    fs::remove_file(file_path)?;
-
-    // Finish progress bar with "done" message
-    pb.finish_with_message("done");
+    if let Some(pb) = pb {
+        pb.inc(file_len);
+        pb.finish_with_message("done");
+    }
 
     Ok(())
 }
 
-// Function to calculate the size of a folder
 fn calculate_folder_size(folder_path: impl AsRef<Path>) -> io::Result<u64> {
     let mut total_size = 0;
 
@@ -125,10 +122,8 @@ fn calculate_folder_size(folder_path: impl AsRef<Path>) -> io::Result<u64> {
         let ty = entry.file_type()?;
 
         if ty.is_dir() {
-            // Recursively calculate size of subdirectories
             total_size += calculate_folder_size(entry.path())?;
         } else {
-            // Add file size to total size
             total_size += entry.metadata()?.len();
         }
     }
